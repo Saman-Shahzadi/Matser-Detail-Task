@@ -1,0 +1,189 @@
+<!-- Main page -->
+
+<div class="card flex flex-wrap gap-4 justify-center mt-4 ">
+  
+  <p-button icon="pi pi-plus-circle" (click)="addDepartment()"  severity="success" [raised]="true" label="Add Department" />
+  
+</div>  &nbsp; &nbsp;
+
+
+
+<!-- Department - Employee Table -->
+
+<h1 style="text-align: center;">Department Employee Information</h1>
+
+<div class="card">
+  <p-table [value]="departmentData" [tableStyle]="{ 'min-width': '50rem' }">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Department Name</th>
+        <th>Employee Name</th>
+        <th>Employee CNIC</th>
+        <th>Employee Job</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-dept let-rowIndex="rowIndex">
+      <tr>
+        <td [attr.rowspan]="dept.employees.length || 1" class="align-top">
+          <div class="flex flex-col items-start w-full gap-2">
+            <span class="whitespace-nowrap">{{ dept.departmentName }}</span>
+        
+            <div class="flex gap-2 mt-2">
+              <p-button icon="pi pi-pencil" [rounded]="true" severity="warn" (click)="editDepartment(rowIndex)"></p-button>
+              <p-button icon="pi pi-trash" [rounded]="true" severity="danger" (click)="confirmDeleteDepartment($event, rowIndex)"></p-button>
+              
+            </div>
+          </div>
+        </td>
+        
+        <td>{{ dept.employees[0]?.employeeName }}</td>
+        <td>{{ dept.employees[0]?.employeeCNIC }}</td>
+        <td>{{ dept.employees[0]?.employeeJob }}</td>
+        <td>
+          <div class="flex gap-2 mt-2">
+            <p-button icon="pi pi-pencil" [rounded]="true" severity="warn" (click)="editEmployee(rowIndex, 0)"></p-button>
+            <p-button icon="pi pi-trash" [rounded]="true" severity="danger" (click)="confirmDeleteEmployee($event, rowIndex, 0)"></p-button>
+          </div>
+        </td>
+      </tr>
+      <tr *ngFor="let emp of dept.employees.slice(1); let empIndex = index;">
+        <td>{{ emp.employeeName }}</td>
+        <td>{{ emp.employeeCNIC }}</td>
+        <td>{{ emp.employeeJob }}</td>
+        <td>
+          <div class="flex gap-2 mt-2">
+            <p-button icon="pi pi-pencil" [rounded]="true" severity="warn" (click)="editEmployee(rowIndex, empIndex+1)"></p-button>
+            <p-button icon="pi pi-trash" [rounded]="true" severity="danger" (click)="confirmDeleteEmployee($event, rowIndex, empIndex+1)"></p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+
+
+<!-- Department Dialog for form -->
+
+
+<div class="card flex justify-center">
+  <p-dialog header="Department-Employee Detail Form" [modal]="true" [(visible)]="visible"  (onHide)="closeDialog()" [style]="{ width: '65rem' }">
+      <span class="p-text-secondary block mb-4">Add department details...</span>
+      <form [formGroup]="departmentForm" (ngSubmit)="onFormSubmit()">
+
+  
+        <div class="card border border-gray-300 p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+              <div>
+              <p-inputgroup>
+                <p-inputgroup-addon>
+                    <i class="pi pi-building"></i>
+                </p-inputgroup-addon>
+                <input pInputText placeholder="Department Name"  formControlName="departmentName" class="w-full"  [attr.disabled]="deptEditIndex !== null && empEditIndex !== null ? true : null"  />
+              </p-inputgroup>
+              <small *ngIf="departmentForm.get('departmentName')?.errors?.['required'] && departmentForm.get('departmentName')?.touched" class="p-error mt-1">
+                Department name is required.
+              </small>
+
+              <small *ngIf="departmentForm.get('departmentName')?.errors?.['pattern']" class="p-error mt-1">
+                Department name must contain alphabets only.
+              </small>
+
+              <small *ngIf="departmentForm.get('departmentName')?.errors?.['minlength']" class="p-error mt-1">
+                Department name must be atleast 2 characters long.
+              </small>
+        
+              <small *ngIf="departmentForm.get('departmentName')?.errors?.['maxlength']" class="p-error mt-1">
+                Department name cannot exceed 20 characters.
+              </small>
+              <div class="flex justify-end mt-4" *ngIf="!isEditingEmployee">
+                <p-button icon="pi pi-plus-circle" (click)="addNewEmployee()"  severity="primary"  [raised]="true" label="Add Employee" />
+              </div>
+            </div>
+              
+              
+              <div formArrayName="employees" class="mt-4">
+                <div *ngFor="let emp of Employees().controls; let empIndex=index;" [formGroupName]="empIndex" class="p-3 border border-gray-200 rounded-lg mb-3 bg-gray-50">
+                  
+                  <div class="flex flex-wrap md:flex-nowrap gap-4 items-center">
+                    <div class="flex-1">
+                      <p-inputgroup>
+                        <p-inputgroup-addon>
+                          <i class="pi pi-user"></i>
+                        </p-inputgroup-addon>
+                        <input pInputText placeholder="Employee Name"   formControlName="employeeName"  class="w-full" />
+                      </p-inputgroup>
+                      <small *ngIf="emp.get('employeeName')?.errors?.['required'] && emp.get('employeeName')?.touched" class="p-error mt-1">
+                        Employee name is required.
+                      </small>
+                    
+                    
+              <small *ngIf="emp.get('employeeName')?.errors?.['pattern']" class="p-error mt-1">
+                Employee name must contain alphabets only.
+              </small>
+
+              <small *ngIf="emp.get('employeeName')?.errors?.['minlength']" class="p-error mt-1">
+                Employee name must be atleast 3 characters long.
+              </small>
+              
+              <small *ngIf="emp.get('employeeName')?.errors?.['maxlength']" class="p-error mt-1">
+                Employee name cannot exceed 20 characters.
+              </small>
+                    </div>    
+                    <div class="flex-1">
+                      <p-inputgroup>
+                        <p-inputgroup-addon>
+                          <i class="pi pi-id-card"></i>
+                        </p-inputgroup-addon>
+                        <input pInputText placeholder="Employee CNIC"  formControlName="employeeCNIC" class="w-full" />
+                      </p-inputgroup>
+                      <small *ngIf="emp.get('employeeCNIC')?.errors?.['required'] && emp.get('employeeCNIC')?.touched" class="p-error mt-1">
+                        Employee CNIC is required.
+                      </small>
+                      <small *ngIf="emp.get('employeeCNIC')?.errors?.['pattern']" class="p-error mt-1">
+                        CNIC can contain only 13 digits(0-9).
+                      </small>
+                    </div>
+                  
+                    <div class="flex-1">
+                      <p-inputgroup>
+                        <p-inputgroup-addon>
+                          <i class="pi pi-briefcase"></i>
+                        </p-inputgroup-addon>
+                        <input pInputText placeholder="Employee Job"   formControlName="employeeJob" class="w-full" />
+                      </p-inputgroup>
+                      <small *ngIf="emp.get('employeeJob')?.errors?.['required'] && emp.get('employeeJob')?.touched" class="p-error mt-1">
+                        Employee Job is required.
+                      </small>
+                    
+                    <small *ngIf="emp.get('employeeJob')?.errors?.['pattern']" class="p-error mt-1">
+                      Job title must contain alphabets only.
+                    </small>
+                    </div>
+
+                    <div class="flex-1" *ngIf="!isEditingEmployee">
+                      <p-button icon="pi pi-minus" [rounded]="true" severity="danger" (click)="removeEmployee(empIndex)"></p-button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+              
+             
+            
+          
+        </div>
+        
+      </form>
+      <div class="flex justify-right gap-2">
+          <p-button label="Cancel" severity="danger" (click)="closeDialog()" />
+          <p-button [label]="empEditIndex !==null || deptEditIndex !==null ? 'Update' : 'Save'" (click)="saveDepartment()" />
+      </div>
+  </p-dialog>
+</div>
+
+
+<p-toast />
+<p-confirmDialog></p-confirmDialog>
