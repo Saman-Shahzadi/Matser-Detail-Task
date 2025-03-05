@@ -24,10 +24,10 @@
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-dept let-rowIndex="rowIndex">
-      <tr>
-        <td [attr.rowspan]="dept.employees.length || 1" class="align-top">
-          <div class="flex flex-col items-start w-full gap-2">
-            <span class="whitespace-nowrap">{{ dept.departmentName }}</span>
+      <tr *ngFor="let emp of dept.employees; let empIndex = index;">
+        <td *ngIf="empIndex === 0 ;" class="align-top">
+          <div class=>
+            <span >{{ dept.departmentName }}</span>
         
             <div class="flex gap-2 mt-2">
               <p-button icon="pi pi-pencil" [rounded]="true" severity="warn" (click)="editDepartment(rowIndex)"></p-button>
@@ -36,25 +36,15 @@
             </div>
           </div>
         </td>
-        
-        <td>{{ dept.employees[0]?.employeeName }}</td>
-        <td>{{ dept.employees[0]?.employeeCNIC }}</td>
-        <td>{{ dept.employees[0]?.employeeJob }}</td>
-        <td>
-          <div class="flex gap-2 mt-2">
-            <p-button icon="pi pi-pencil" [rounded]="true" severity="warn" (click)="editEmployee(rowIndex, 0)"></p-button>
-            <p-button icon="pi pi-trash" [rounded]="true" severity="danger" (click)="confirmDeleteEmployee($event, rowIndex, 0)"></p-button>
-          </div>
-        </td>
-      </tr>
-      <tr *ngFor="let emp of dept.employees.slice(1); let empIndex = index;">
+       
+        <td *ngIf=" empIndex > 0" ></td>
         <td>{{ emp.employeeName }}</td>
         <td>{{ emp.employeeCNIC }}</td>
         <td>{{ emp.employeeJob }}</td>
         <td>
           <div class="flex gap-2 mt-2">
-            <p-button icon="pi pi-pencil" [rounded]="true" severity="warn" (click)="editEmployee(rowIndex, empIndex+1)"></p-button>
-            <p-button icon="pi pi-trash" [rounded]="true" severity="danger" (click)="confirmDeleteEmployee($event, rowIndex, empIndex+1)"></p-button>
+            <p-button icon="pi pi-pencil" [rounded]="true" severity="warn" (click)="editEmployee(rowIndex, empIndex)"></p-button>
+            <p-button icon="pi pi-trash" [rounded]="true" severity="danger" (click)="confirmDeleteEmployee($event, rowIndex, empIndex)"></p-button>
           </div>
         </td>
       </tr>
@@ -167,13 +157,7 @@
                     </div>
                   </div>
                 </div>
-              </div>
-
-
-              
-             
-            
-          
+              </div> 
         </div>
         
       </form>

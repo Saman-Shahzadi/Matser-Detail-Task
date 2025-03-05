@@ -195,7 +195,7 @@ export class MasterDetailCrudComponent implements OnInit {
     }
   
     this.Formreset();
-    this.closeDialog();
+    //this.closeDialog();
   }else{
     this.departmentForm.markAllAsTouched();
     this.showInvalidMessage();
