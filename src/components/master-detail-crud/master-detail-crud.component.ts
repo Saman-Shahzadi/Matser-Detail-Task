@@ -10,6 +10,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import {ConfirmationService, MessageService } from 'primeng/api';
 import { Toast } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { DatePicker } from 'primeng/datepicker';
+import { ageValidatorBasedOnGender } from '../../app/validators/ageValidator';
 
 @Component({
   selector: 'app-master-detail-crud',
@@ -18,7 +21,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
   imports: [ButtonModule, CommonModule, DialogModule,
     ReactiveFormsModule, TableModule,
     InputGroupModule, InputGroupAddonModule,
-    InputTextModule, NgFor, Toast, ConfirmDialogModule],
+    InputTextModule, NgFor, Toast, ConfirmDialogModule,
+    RadioButtonModule, DatePicker],
     providers: [ConfirmationService, MessageService]
 })
 export class MasterDetailCrudComponent implements OnInit {
@@ -29,12 +33,16 @@ export class MasterDetailCrudComponent implements OnInit {
   deptEditIndex : number | null = null;
   empEditIndex : number | null = null;
   isEditingEmployee : boolean =  false;
+
+ 
   
 
   constructor(private fb: FormBuilder, private messageService: MessageService, private confirmationService: ConfirmationService){}
 
   ngOnInit(){
+    
     this.initializeForm();
+    this.loadDataFromLocalStorage();
   }
 
   initializeForm(){
@@ -62,7 +70,11 @@ export class MasterDetailCrudComponent implements OnInit {
        return this.fb.group({
       employeeName : ['', [Validators.required, Validators.pattern('^[A-Za-z ]+$'),  Validators.minLength(3), Validators.maxLength(20)]],
       employeeCNIC: ['', [Validators.required, Validators.pattern('^[0-9]{13}$')]],
-      employeeJob  : ['', [Validators.required, Validators.pattern('^[A-Za-z ]+$')]]
+      employeeJob  : ['', [Validators.required, Validators.pattern('^[A-Za-z ]+$')]],
+      employeeGender : ['', Validators.required],
+      employeeDOB : ['1', [Validators.required, ageValidatorBasedOnGender("employeeGender") ]],
+      employeeSalary : ['']
+      
     });
   }
 
@@ -159,7 +171,11 @@ export class MasterDetailCrudComponent implements OnInit {
       employees: [{
         employeeName: selectedEmployee.employeeName,
         employeeCNIC: selectedEmployee.employeeCNIC,
-        employeeJob: selectedEmployee.employeeJob
+        employeeJob: selectedEmployee.employeeJob,
+        employeeGender : selectedEmployee.employeeGender,
+        employeeDOB : selectedEmployee.employeeDOB,
+        employeeSalary : selectedEmployee.employeeSalary
+
       }]
     });
   
@@ -175,12 +191,14 @@ export class MasterDetailCrudComponent implements OnInit {
       // Adding new department
       this.departmentData.push(selectedDepartment);
       this.showSuccessMessage();    // message 
+      
      
     } else {
       if (this.empEditIndex === null) {
         // Editing a department 
         this.departmentData[this.deptEditIndex] = selectedDepartment;
-        this.showUpdateDepartmentMessage();   
+        this.showUpdateDepartmentMessage();
+           
       } else {
         // Editing a specific employee inside the department
         this.departmentData[this.deptEditIndex].employees[this.empEditIndex] = selectedDepartment.employees[0];
@@ -193,9 +211,9 @@ export class MasterDetailCrudComponent implements OnInit {
   
       this.deptEditIndex = null;
     }
-  
+    this.saveToLocalStorage();
     this.Formreset();
-    //this.closeDialog();
+    this.closeDialog();
   }else{
     this.departmentForm.markAllAsTouched();
     this.showInvalidMessage();
@@ -225,6 +243,12 @@ showSingleEmployeeDeletionMessage() {
   this.messageService.add({ severity: 'error', summary: 'Rejected', detail: 'Department must contain atleast one employee' });
 }
 
+
+showLocalStorageSaveSuccessMessage() {
+  this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Changes saved to local storage' });
+}
+
+
 confirmDeleteDepartment(event: Event, deptIndex:number) {
   this.confirmationService.confirm({
       target: event.target as EventTarget,
@@ -245,7 +269,8 @@ confirmDeleteDepartment(event: Event, deptIndex:number) {
       accept: () => {
           this.deleteDepartment(deptIndex);
           this.messageService.add({ severity: 'info', summary: 'Confirmed', detail: 'Department Record deleted' });
-      },
+          this.saveToLocalStorage();
+        },
       reject: () => {
           this.messageService.add({ severity: 'error', summary: 'Rejected', detail: 'You have rejected' });
       },
@@ -273,7 +298,8 @@ confirmDeleteEmployee(event: Event, deptIndex:number, empIndex:number) {
           if(this.departmentData[deptIndex].employees.length > 1){
           this.deleteEmployee(deptIndex, empIndex);
           this.messageService.add({ severity: 'info', summary: 'Confirmed', detail: 'Employee Record deleted' });
-          }
+          this.saveToLocalStorage();  
+        }
           else{
             this.showSingleEmployeeDeletionMessage();
           }
@@ -283,6 +309,31 @@ confirmDeleteEmployee(event: Event, deptIndex:number, empIndex:number) {
       },
   });
 }
+
+//local storage functions
+saveToLocalStorage(){
+  localStorage.setItem('departments', JSON.stringify(this.departmentData));
+  this.showLocalStorageSaveSuccessMessage();
+}
+
+loadDataFromLocalStorage(){
+  const data = localStorage.getItem('departments');
+  if(data){
+    this.departmentData = JSON.parse(data);
+  }
+  
+}
+isEmployeeRecordAdded(){
+  return this.Employees().controls.every(emp => emp.dirty && emp.valid);
+}
+
+/// conditional validation using custom validator
+
+
+
+
+
+
 }
 
 

@@ -10,7 +10,7 @@
 
 <!-- Department - Employee Table -->
 
-<h1 style="text-align: center;">Department Employee Information</h1>
+<h1 style="text-align: center;">Employee Information</h1>
 
 <div class="card">
   <p-table [value]="departmentData" [tableStyle]="{ 'min-width': '50rem' }">
@@ -20,6 +20,9 @@
         <th>Employee Name</th>
         <th>Employee CNIC</th>
         <th>Employee Job</th>
+        <th>Gender</th>
+        <th>DOB</th>
+        <th>Salary</th>
         <th>Actions</th>
       </tr>
     </ng-template>
@@ -41,6 +44,9 @@
         <td>{{ emp.employeeName }}</td>
         <td>{{ emp.employeeCNIC }}</td>
         <td>{{ emp.employeeJob }}</td>
+        <td>{{ emp.employeeGender}}</td>
+        <td>{{ emp.employeeDOB}}</td>
+        <td>{{ emp.employeeSalary}}</td>
         <td>
           <div class="flex gap-2 mt-2">
             <p-button icon="pi pi-pencil" [rounded]="true" severity="warn" (click)="editEmployee(rowIndex, empIndex)"></p-button>
@@ -58,8 +64,8 @@
 
 
 <div class="card flex justify-center">
-  <p-dialog header="Department-Employee Detail Form" [modal]="true" [(visible)]="visible"  (onHide)="closeDialog()" [style]="{ width: '65rem' }">
-      <span class="p-text-secondary block mb-4">Add department details...</span>
+  <p-dialog header="Employee Detail Form" [modal]="true" [(visible)]="visible"  (onHide)="closeDialog()" [style]="{ width: '65rem' }">
+      <span class="p-text-secondary block mb-4">Add employee details...</span>
       <form [formGroup]="departmentForm" (ngSubmit)="onFormSubmit()">
 
   
@@ -87,9 +93,7 @@
               <small *ngIf="departmentForm.get('departmentName')?.errors?.['maxlength']" class="p-error mt-1">
                 Department name cannot exceed 20 characters.
               </small>
-              <div class="flex justify-end mt-4" *ngIf="!isEditingEmployee">
-                <p-button icon="pi pi-plus-circle" (click)="addNewEmployee()"  severity="primary"  [raised]="true" label="Add Employee" />
-              </div>
+             
             </div>
               
               
@@ -152,10 +156,49 @@
                     </small>
                     </div>
 
+                   
+
                     <div class="flex-1" *ngIf="!isEditingEmployee">
                       <p-button icon="pi pi-minus" [rounded]="true" severity="danger" (click)="removeEmployee(empIndex)"></p-button>
                     </div>
                   </div>
+                  <div class="flex flex-wrap md:flex-nowrap gap-4 items-center mt-6"> &nbsp; &nbsp;
+
+                   
+                      <label>Select Gender:</label>
+                      <p-radiobutton    value="Male" formControlName="employeeGender" />
+                      <label for="employeeGender{{empIndex}}" class="ml-2">Male</label>
+
+                      <p-radiobutton   value="Female" formControlName="employeeGender" />
+                      <label for="employeeGender{{empIndex}}" class="ml-2">Female</label>
+
+                      <p-radiobutton  value="Other" formControlName="employeeGender" />
+                      <label for="employeeGender{{empIndex}}" class="ml-2">Other</label>
+
+
+                      <small *ngIf="emp.get('employeeGender')?.errors?.['required'] && emp.get('employeeGender')?.touched" class="p-error mt-1">
+                        Gender is required.
+                      </small>
+                    
+                 
+                </div>
+                <div class="flex-wrap md:flex-nowrap gap-4 items-center mt-8" >
+                  
+                  <p-datepicker formControlName="employeeDOB" placeholder="Date of Birth"  showIcon iconDisplay="input" />
+                  
+                  </div>
+
+                  <small *ngIf="emp.get('employeeDOB')?.errors?.['required'] && emp.get('employeeDOB')?.touched" class="p-error mt-1">
+                    DOB is required.
+                  </small>
+
+                  <small *ngIf="emp.get('employeeDOB')?.errors?.['minError']">
+                    {{ emp.get('employeeDOB')?.errors?.['minError']}}
+                  </small>
+                  
+                </div>
+                <div class="flex justify-end mt-4" *ngIf="!isEditingEmployee ">
+                  <p-button icon="pi pi-plus-circle" (click)="addNewEmployee()" [disabled]="!isEmployeeRecordAdded()"  severity="primary"  [raised]="true" label="Add Employee" />
                 </div>
               </div> 
         </div>
