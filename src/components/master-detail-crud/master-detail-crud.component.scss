@@ -7,4 +7,15 @@
   }
 
 
+  .ng-invalid-cnic {
+    border: 2px solid red;
+    background-color: #ffcccc;
+  }
+  :host ::ng-deep .p-datepicker-calendar {
+    display: block;
+    height: 200px !important;
+    overflow-y: auto;
+  }
+  
+ 
   

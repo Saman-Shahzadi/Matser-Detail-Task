@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterContentChecked, Component, OnInit } from '@angular/core';
 import { Form, FormArray, FormBuilder, FormGroup,  ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
@@ -13,6 +13,13 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { DatePicker } from 'primeng/datepicker';
 import { ageValidatorBasedOnGender } from '../../app/validators/ageValidator';
+import { uniqueCNICValidator } from '../../app/validators/cnicValidator'
+import { differenceInYears } from 'date-fns';
+import { InputNumberModule } from 'primeng/inputnumber';
+
+
+
+
 
 @Component({
   selector: 'app-master-detail-crud',
@@ -22,10 +29,10 @@ import { ageValidatorBasedOnGender } from '../../app/validators/ageValidator';
     ReactiveFormsModule, TableModule,
     InputGroupModule, InputGroupAddonModule,
     InputTextModule, NgFor, Toast, ConfirmDialogModule,
-    RadioButtonModule, DatePicker],
+    RadioButtonModule, DatePicker, InputNumberModule],
     providers: [ConfirmationService, MessageService]
 })
-export class MasterDetailCrudComponent implements OnInit {
+export class MasterDetailCrudComponent implements OnInit, AfterContentChecked {
 
   departmentForm! : FormGroup;
   departmentData : any[] = [];
@@ -33,16 +40,26 @@ export class MasterDetailCrudComponent implements OnInit {
   deptEditIndex : number | null = null;
   empEditIndex : number | null = null;
   isEditingEmployee : boolean =  false;
+  todayDate : Date = new Date();
 
- 
   
-
   constructor(private fb: FormBuilder, private messageService: MessageService, private confirmationService: ConfirmationService){}
 
   ngOnInit(){
     
     this.initializeForm();
     this.loadDataFromLocalStorage();
+
+  }
+
+  ngAfterContentChecked(): void {
+    this.Employees().controls.forEach(emp =>{
+      emp.get('employeeDOB')?.updateValueAndValidity();
+    })
+
+    this.Employees().controls.forEach(emp =>{
+      emp.get('employeeCNIC')?.updateValueAndValidity();
+    })
   }
 
   initializeForm(){
@@ -69,13 +86,14 @@ export class MasterDetailCrudComponent implements OnInit {
   newEmployee(){
        return this.fb.group({
       employeeName : ['', [Validators.required, Validators.pattern('^[A-Za-z ]+$'),  Validators.minLength(3), Validators.maxLength(20)]],
-      employeeCNIC: ['', [Validators.required, Validators.pattern('^[0-9]{13}$')]],
+      employeeCNIC: ['', [Validators.required, Validators.pattern('^[0-9]{13}$'), uniqueCNICValidator(() => this.Employees())]],
       employeeJob  : ['', [Validators.required, Validators.pattern('^[A-Za-z ]+$')]],
       employeeGender : ['', Validators.required],
-      employeeDOB : ['1', [Validators.required, ageValidatorBasedOnGender("employeeGender") ]],
-      employeeSalary : ['']
+      employeeDOB : ['', [Validators.required, ageValidatorBasedOnGender("employeeGender")]],
+      employeeSalary : ['', [Validators.required, Validators.min(1000), Validators.max(10000), Validators.pattern('^[0-9]+$')]]
       
-    });
+    }
+  );
   }
 
   addNewEmployee(){ 
@@ -201,8 +219,14 @@ export class MasterDetailCrudComponent implements OnInit {
            
       } else {
         // Editing a specific employee inside the department
-        this.departmentData[this.deptEditIndex].employees[this.empEditIndex] = selectedDepartment.employees[0];
-        this.showUpdateEmployeeMessage();
+        const selectedCNIC  = selectedDepartment.employees[0].employeeCNIC;
+        if(this.isDuplicateCNIC(selectedCNIC, this.deptEditIndex, this.empEditIndex)){
+          this.showDuplicateCNICMessage();
+        }else{
+          this.departmentData[this.deptEditIndex].employees[this.empEditIndex] = selectedDepartment.employees[0];
+          this.showUpdateEmployeeMessage();
+        }
+       
 
         // Reset employee edit index
         this.empEditIndex = null;
@@ -238,6 +262,11 @@ showUpdateEmployeeMessage() {
 showInvalidMessage() {
   this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Invalid Submission: Kindly fill out all fields correctly!!!' });
 }
+
+showDuplicateCNICMessage() {
+  this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Duplicate Submission: CNIC already exists.... ' });
+}
+
 
 showSingleEmployeeDeletionMessage() {
   this.messageService.add({ severity: 'error', summary: 'Rejected', detail: 'Department must contain atleast one employee' });
@@ -327,14 +356,24 @@ isEmployeeRecordAdded(){
   return this.Employees().controls.every(emp => emp.dirty && emp.valid);
 }
 
-/// conditional validation using custom validator
+// calculating age from DOB
 
+calculateAge(dob:Date){
+  const age = differenceInYears(this.todayDate, dob);
+  return age;
+}
 
+isDuplicateCNIC(selectedCNIC: string, deptIndex:number, currentIndex?:number){
+  return this.departmentData[deptIndex].employees.some(
+    (emp: { employeeCNIC: string; }, index:number) => emp.employeeCNIC === selectedCNIC && index !== currentIndex
+  );
+}
 
 
 
 
 }
+
 
 
 
