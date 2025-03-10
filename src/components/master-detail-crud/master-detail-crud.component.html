@@ -196,7 +196,7 @@
                           <p-inputgroup-addon>
                             <i class="pi pi-wallet"></i>
                           </p-inputgroup-addon>
-                          <input pInputText  placeholder="Employee Salary"   formControlName="employeeSalary" class="w-full"  />
+                          <input pInputText  placeholder="Employee Salary" [maxlength]="5"  formControlName="employeeSalary" class="w-full"  />
                         </p-inputgroup>
                         <small *ngIf="emp.get('employeeSalary')?.errors?.['required'] && emp.get('employeeSalary')?.touched" class="p-error mt-1">
                           Employee Salary is required.
