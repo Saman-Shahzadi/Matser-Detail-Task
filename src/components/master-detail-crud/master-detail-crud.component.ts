@@ -349,6 +349,12 @@ loadDataFromLocalStorage(){
   const data = localStorage.getItem('departments');
   if(data){
     this.departmentData = JSON.parse(data);
+    this.departmentData.forEach(
+      department => { department.employees.forEach(
+        ( emp: { employeeDOB: string | number | Date; }) => { emp.employeeDOB = new Date(emp.employeeDOB)}
+      )}
+    )
+    console.log(this.departmentData)
   }
   
 }
